@@ -7,7 +7,7 @@ from post.models import (
     # CommentVote,
 )
 from user.serializers import UserSerializer
-from serializers import ValiddationErrors 
+
 
 
 class PostCreateSerializer(serializers.ModelSerializer):
@@ -103,29 +103,29 @@ class PostDetailSerializer(serializers.ModelSerializer):
 
 
 # class CommentListSerializer(serializers.ModelSerializer):
-    author = UserSerializer(read_only = True)
+    # author = UserSerializer(read_only = True)
      
-    upvotes = serializers.SerializerMethodField()
-    downvotes = serializers.SerializerMethodField()
-    score = serializers.SerializerMethodField()
-    vote = serializers.SerializerMethodField()
+    # upvotes = serializers.SerializerMethodField()
+    # downvotes = serializers.SerializerMethodField()
+    # score = serializers.SerializerMethodField()
+    # vote = serializers.SerializerMethodField()
 
-    class Meta:
-        model = Comment
-        fields = "__all__"
+    # class Meta:
+    #     model = Comment
+    #     fields = "__all__"
 
-    def get_upvotes(self, obj):
-        return obj.upvotes()
+    # def get_upvotes(self, obj):
+    #     return obj.upvotes()
 
-    def get_downvotes(self, obj):
-        return obj.downvotes()
+    # def get_downvotes(self, obj):
+    #     return obj.downvotes()
 
-    def get_score(self, obj):
-        return obj.score()
+    # def get_score(self, obj):
+    #     return obj.score()
     
-    def get_vote(self,obj):
-        user = self.context["request"].user 
-        vote = CommentVote.objects.filter(comment= obj,user = user).first()
-        if vote:
-            return vote.vote 
-        return None 
+    # def get_vote(self,obj):
+    #     user = self.context["request"].user 
+    #     vote = CommentVote.objects.filter(comment= obj,user = user).first()
+    #     if vote:
+    #         return vote.vote 
+    #     return None 

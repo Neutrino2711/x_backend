@@ -3,6 +3,8 @@ from django.db import models
 from io import BytesIO 
 from PIL import Image 
 import os 
+from django.core.exceptions import ValidationError
+
 
 # supabase
 # from supabase import create_client,Client
@@ -28,6 +30,12 @@ class Post(models.Model):
     content = models.TextField(blank = True)
 
     image = models.ImageField(null = True,blank = True)
+    def clean(self):
+        if not self.content and not self.image:
+            raise ValidationError("Either content or image is required.")
+
+        # Always return cleaned data
+        return super().clean()
     created_at = models.DateTimeField(auto_now_add = True)
     updated_at = models.DateTimeField(auto_now = True)
     author = models.ForeignKey("user.User",on_delete = models.CASCADE)
@@ -90,6 +98,7 @@ class Post(models.Model):
         if self.content is None and self.image is None:
             return 
         else:    
+            self.clean()
             super().save(*args,**kwargs)
 
     def __str__(self):

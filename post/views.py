@@ -84,3 +84,33 @@ class PostVoteView(generics.GenericAPIView):
         if not created: 
             if post_vote.vote == vote:
                 post_vote.delete()
+
+            else:
+                post_vote.vote = vote 
+                post_vote.save()
+        else: 
+            post_vote.vote = vote
+            post_vote.save()
+        return Response({"success":True})
+    
+
+class UserPostListView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [authentication.TokenAuthentication]
+
+    serializer_class = PostListSerializer
+
+    def get_queryset(self):
+        return Post.objects.filter(author = self.request.user)
+
+
+class UserBookmarkListView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [authentication.TokenAuthentication]
+
+    serializer_class = PostListSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        bookmarks = Bookmark.objects.filter(user = user)
+        return Post.objects.filter(bookmarks__in = bookmarks)
