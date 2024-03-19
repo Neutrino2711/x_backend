@@ -22,11 +22,24 @@ from django.db.models import Count,Case,When,IntegerField
 
 
 class Post(models.Model):
-    content = models.TextField()
+
+    
+
+    content = models.TextField(blank = True)
+
     image = models.ImageField(null = True,blank = True)
     created_at = models.DateTimeField(auto_now_add = True)
     updated_at = models.DateTimeField(auto_now = True)
     author = models.ForeignKey("user.User",on_delete = models.CASCADE)
+    parent = models.ForeignKey(
+        "self",
+        on_delete = models.CASCADE,
+        related_name = "replies",
+        null = True,
+        blank = True,
+
+    )
+    depth = models.PositiveIntegerField(default = 0)
 
     def upvote(self) -> int:
         return self.votes.filter(vote = PostVote.UPVOTE).count()
@@ -44,6 +57,7 @@ class Post(models.Model):
         old_image = None 
         if self.pk:
             old_image = Post.objects.get(pk = self.pk).image 
+
             if old_image and old_image != self.image:
                 file_name = os.path.basename(old_image.name)
                 # response = supabase.storage.from_(bucket_name).remove(file_name)
@@ -70,9 +84,18 @@ class Post(models.Model):
                 #     file = output.getvalue(), file_options = file_options,path = file_name
                 # )
                 # self.image = f"{bucket_name}/{file_name}"
-
+        if self.parent is not None:
+            self.depth = self.parent.depth + 1
+        
+        if self.content is None and self.image is None:
+            return 
+        else:    
             super().save(*args,**kwargs)
 
+    def __str__(self):
+        if self.parent is not None:
+            return f"{self.author} commented {self.content[:50]} on {self.post}"
+        
 
 class Bookmark(models.Model):
     user = models.ForeignKey( 
@@ -123,69 +146,69 @@ class PostVote(models.Model):
         return f"{self.user} {self.get_vote_display()}d {self.post}" 
     
 
-class Comment(models.Model):
-    content = models.TextField()
-    image = models.ImageField(null = True)
-    author = models.ForeignKey(
-        "user.User", on_delete = models.CASCADE, related_name = "comments"
-    )
-    post = models.ForeignKey(
-        "post.Post", on_delete = models.CASCADE,
-        related_name = "comments",
-    )
-    created_at = models.DateTimeField(auto_now_add = True)
-    updated_at = models.DateTimeField(auto_now = True)
-    parent = models.ForeignKey(
-        "self",
-        on_delete = models.CASCADE,
-        related_name = "replies",
-        null = True,
-        blank = True,
+# class Comment(models.Model):
+#     content = models.TextField()
+#     image = models.ImageField(null = True)
+#     author = models.ForeignKey(
+#         "user.User", on_delete = models.CASCADE, related_name = "comments"
+#     )
+#     post = models.ForeignKey(
+#         "post.Post", on_delete = models.CASCADE,
+#         related_name = "comments",
+#     )
+#     created_at = models.DateTimeField(auto_now_add = True)
+#     updated_at = models.DateTimeField(auto_now = True)
+#     parent = models.ForeignKey(
+#         "self",
+#         on_delete = models.CASCADE,
+#         related_name = "replies",
+#         null = True,
+#         blank = True,
 
-    )
-    depth = models.PositiveIntegerField(default = 0)
+#     )
+#     depth = models.PositiveIntegerField(default = 0)
 
-    def __str__(self):
-        return f"{self.author} commented {self.content[:50]} on {self.post}"
+#     def __str__(self):
+#         return f"{self.author} commented {self.content[:50]} on {self.post}"
     
-    def upvotes(self):
-        return self.votes.filter(vote = CommentVote.UPVOTE).count()
+#     def upvotes(self):
+#         return self.votes.filter(vote = CommentVote.UPVOTE).count()
     
-    def downvote(self):
-        return self.votes.filter(vote = CommentVote.DOWNVOTE).count()
+#     def downvote(self):
+#         return self.votes.filter(vote = CommentVote.DOWNVOTE).count()
     
-    def score(self):
-        upvotes = self.votes.filter(vote = CommentVote.UPVOTE).count()
-        downvotes = self.votes.filter(vote = CommentVote.DOWNVOTE).count()
-        return upvotes - downvotes
+#     def score(self):
+#         upvotes = self.votes.filter(vote = CommentVote.UPVOTE).count()
+#         downvotes = self.votes.filter(vote = CommentVote.DOWNVOTE).count()
+#         return upvotes - downvotes
     
-    def save(self,*args,**kwargs):
-        if self.parent is not None:
-            self.depth = self.parent.depth + 1
-        super().save(*args,**kwargs)
+#     def save(self,*args,**kwargs):
+#         if self.parent is not None:
+#             self.depth = self.parent.depth + 1
+#         super().save(*args,**kwargs)
 
 
-class CommentVote(models.Model):
-    UPVOTE = 1
-    DOWNVOTE = -1
-    VOTE_CHOICES = (
-        (UPVOTE,"Upvote"),
-        (DOWNVOTE,"Downvote"),
-    )   
+# class CommentVote(models.Model):
+#     UPVOTE = 1
+#     DOWNVOTE = -1
+#     VOTE_CHOICES = (
+#         (UPVOTE,"Upvote"),
+#         (DOWNVOTE,"Downvote"),
+#     )   
 
-    user = models.ForeignKey(
-        "user.User", on_delete = models.CASCADE,related_name = "comment_votes"
-    )
+#     user = models.ForeignKey(
+#         "user.User", on_delete = models.CASCADE,related_name = "comment_votes"
+#     )
 
-    comment = models.ForeignKey(
-        "post.Comment", on_delete = models.CASCADE,related_name = "votes"
-    )
-    vote = models.SmallIntegerField(choices = VOTE_CHOICES)
+#     comment = models.ForeignKey(
+#         "post.Comment", on_delete = models.CASCADE,related_name = "votes"
+#     )
+#     vote = models.SmallIntegerField(choices = VOTE_CHOICES)
 
-    class Meta:
-        unique_together = ("user","comment")
+#     class Meta:
+#         unique_together = ("user","comment")
         
-    def __str__(self):
-        return f"{self.user} - {self.comment} - {self.get_vote_display()}"
+#     def __str__(self):
+#         return f"{self.user} - {self.comment} - {self.get_vote_display()}"
 
     
