@@ -8,5 +8,6 @@ urlpatterns = [
     path("<int:pk>/",views.RetrieveUpdateDestroyPostView.as_view(),name = "post-detail"),
     path("<int:pk>/bookmark/",views.BookmarkView.as_view(),name = "bookmark"),
     path("<int:pk>/vote/",views.PostVoteView.as_view(),name="vote"),
+    path("trending/",views.TrendingHastagsView.as_view(),name = "trending"),
     
 ]

@@ -3,6 +3,7 @@ from post.models import (
     Post,
     Bookmark,
     PostVote,
+    Hastag,
     # Comment,
     # CommentVote,
 )
@@ -12,17 +13,14 @@ from user.serializers import UserSerializer
 
 class PostCreateSerializer(serializers.ModelSerializer):
     '''
-    Serializer for creating a community post
+    Serializer for creating a post
     '''
 
     '''
     defining a validator such that atleast one of these (content,image) should be there
     '''
 
-    def validate(self,data):
-        if data['content'] is None and data['image'] is None: 
-            raise serializers.ValidationError("Either image or content is required to post ")
-        return data
+  
             
 
 
@@ -100,6 +98,18 @@ class PostDetailSerializer(serializers.ModelSerializer):
         if vote: 
             return vote.vote 
         return None 
+
+class HastagsListSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Hastag
+        fields = "__all__"
+
+        
+
+        # hastags  = serializers.SerializerMethodField()
+
+        # def get_hashtags(self,object):
+        #     return object.hastags
 
 
 # class CommentListSerializer(serializers.ModelSerializer):

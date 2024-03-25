@@ -5,6 +5,7 @@ from post.models import (
     Post,
     Bookmark,
     PostVote,
+    Hastag,
     # Comment,
     # CommentVote,
 )
@@ -12,6 +13,7 @@ from post.serializers import (
     PostCreateSerializer,
     PostDetailSerializer,
     PostListSerializer,
+    HastagsListSerializer,
     # CommentListSerializer,
 )
 
@@ -114,3 +116,10 @@ class UserBookmarkListView(generics.ListAPIView):
         user = self.request.user
         bookmarks = Bookmark.objects.filter(user = user)
         return Post.objects.filter(bookmarks__in = bookmarks)
+    
+
+class TrendingHastagsView(generics.ListAPIView):
+    serializer_class = HastagsListSerializer
+
+    def get_queryset(self):
+        return Hastag.objects.annotate(posts_count=Count('posts')).order_by('-posts_count').filter()

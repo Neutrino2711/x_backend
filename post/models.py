@@ -12,6 +12,7 @@ from django.core.exceptions import ValidationError
 from django.core.files.base import ContentFile 
 from django.conf import settings 
 from django.db.models import Count,Case,When,IntegerField 
+import re 
 
 
 # supabase
@@ -22,13 +23,26 @@ from django.db.models import Count,Case,When,IntegerField
 
 # Create your models here.
 
+class Hastag(models.Model):
+    name = models.CharField(max_length = 100,unique = True)
+
+    def __str__(self):
+        return self.name
+    
+    # def get_or_create(self,name):
+    #     super().save(name = name)
+
+    def save(self,*args,**kwargs):
+        super().save(*args,**kwargs)
+        
+
 
 class Post(models.Model):
 
     
 
     content = models.TextField(blank = True)
-
+    hastags = models.ManyToManyField(Hastag,blank = True,related_name= "posts")
     image = models.ImageField(null = True,blank = True)
     def clean(self):
         if not self.content and not self.image:
@@ -94,16 +108,29 @@ class Post(models.Model):
                 # self.image = f"{bucket_name}/{file_name}"
         if self.parent is not None:
             self.depth = self.parent.depth + 1
-        
-        if self.content is None and self.image is None:
-            return 
-        else:    
-            self.clean()
-            super().save(*args,**kwargs)
+        self.clean()
+        super().save(*args,**kwargs)
+        hastags = re.findall(r"#(\w+)",self.content)
+        for hastag in hastags:
+           try:
+               tag = Hastag.objects.get(name = hastag)
+               self.hastags.add(tag)
+           except Hastag.DoesNotExist:
+               print("Hashtag Does Not Exist")    
+               
+
+               tag =  Hastag(name = hastag)
+           
+               tag.save()
+               self.hastags.add(tag)
+        # if self.content is None and self.image is None:
+        #     return 
+        # else:    
+        #     self.clean()
+        #     super().save(*args,**kwargs)
 
     def __str__(self):
-        if self.parent is not None:
-            return f"{self.author} commented {self.content[:50]} on {self.post}"
+        return self.content
         
 
 class Bookmark(models.Model):
@@ -153,71 +180,4 @@ class PostVote(models.Model):
 
     def __str__(self):
         return f"{self.user} {self.get_vote_display()}d {self.post}" 
-    
-
-# class Comment(models.Model):
-#     content = models.TextField()
-#     image = models.ImageField(null = True)
-#     author = models.ForeignKey(
-#         "user.User", on_delete = models.CASCADE, related_name = "comments"
-#     )
-#     post = models.ForeignKey(
-#         "post.Post", on_delete = models.CASCADE,
-#         related_name = "comments",
-#     )
-#     created_at = models.DateTimeField(auto_now_add = True)
-#     updated_at = models.DateTimeField(auto_now = True)
-#     parent = models.ForeignKey(
-#         "self",
-#         on_delete = models.CASCADE,
-#         related_name = "replies",
-#         null = True,
-#         blank = True,
-
-#     )
-#     depth = models.PositiveIntegerField(default = 0)
-
-#     def __str__(self):
-#         return f"{self.author} commented {self.content[:50]} on {self.post}"
-    
-#     def upvotes(self):
-#         return self.votes.filter(vote = CommentVote.UPVOTE).count()
-    
-#     def downvote(self):
-#         return self.votes.filter(vote = CommentVote.DOWNVOTE).count()
-    
-#     def score(self):
-#         upvotes = self.votes.filter(vote = CommentVote.UPVOTE).count()
-#         downvotes = self.votes.filter(vote = CommentVote.DOWNVOTE).count()
-#         return upvotes - downvotes
-    
-#     def save(self,*args,**kwargs):
-#         if self.parent is not None:
-#             self.depth = self.parent.depth + 1
-#         super().save(*args,**kwargs)
-
-
-# class CommentVote(models.Model):
-#     UPVOTE = 1
-#     DOWNVOTE = -1
-#     VOTE_CHOICES = (
-#         (UPVOTE,"Upvote"),
-#         (DOWNVOTE,"Downvote"),
-#     )   
-
-#     user = models.ForeignKey(
-#         "user.User", on_delete = models.CASCADE,related_name = "comment_votes"
-#     )
-
-#     comment = models.ForeignKey(
-#         "post.Comment", on_delete = models.CASCADE,related_name = "votes"
-#     )
-#     vote = models.SmallIntegerField(choices = VOTE_CHOICES)
-
-#     class Meta:
-#         unique_together = ("user","comment")
-        
-#     def __str__(self):
-#         return f"{self.user} - {self.comment} - {self.get_vote_display()}"
-
     
