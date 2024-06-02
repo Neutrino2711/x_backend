@@ -80,7 +80,7 @@ class PostDetailSerializer(serializers.ModelSerializer):
         fields = "__all__"
 
     def get_upvotes(self,obj):
-        return obj.upvotes()
+        return obj.upvote()
     
     def get_downvotes(self,obj):
         return obj.downvotes()

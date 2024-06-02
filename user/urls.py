@@ -1,6 +1,6 @@
 from django.urls import path 
 from user import views 
-from user.views import PasswordResetView,PasswordResetConfirmView 
+from user.views import PasswordResetView,PasswordResetConfirmView
 from django.contrib.auth.views import PasswordResetCompleteView
 
 urlpatterns = [
@@ -22,5 +22,8 @@ urlpatterns = [
              views.CustomPasswordResetCompleteView.as_view(),
              name = "password_reset_complete",
 
-         )
+         ),
+    path("followers/",views.FollowersView.as_view(),name = "followers"),
+    path("following/",views.FollowingListView.as_view(),name="following"),
+    # path('create_following/',)
 ]

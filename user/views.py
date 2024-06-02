@@ -1,14 +1,16 @@
 from rest_framework import generics,authentication,permissions
 from rest_framework.authtoken.views import ObtainAuthToken 
 from rest_framework.settings import api_settings 
+from .models import User
 from .serializers import (
     UserSerializer,
     AuthTokenSerializer,
     PasswordResetSerializer,
     PasswordResetConfirmSerializer,
+    
 )
 
-from rest_framework import status 
+from rest_framework import status,viewsets
 from rest_framework.response import Response
 from django.contrib.auth import get_user_model
 from django.contrib.auth.tokens import PasswordResetTokenGenerator
@@ -22,19 +24,55 @@ from django.db.models import Q
 from django.contrib.auth.views import PasswordResetCompleteView
 from django.urls import reverse_lazy 
 
-from django.shortcuts import render
+from django.shortcuts import render,get_object_or_404
 
 # Create your views here.
 
 class CreateUserView(generics.CreateAPIView):
 
+   
     '''
     Create a new user in the system
     '''
-
+    print("here in view")
     serializer_class = UserSerializer
+    
 
+    # def create(self, request, *args, **kwargs):
+    #     serializer = self.get_serializer(data=request.data)
+    #     if serializer.is_valid():
+    #         self.perform_create(serializer)
+    #         headers = self.get_success_headers(serializer.data)
+    #         return Response(serializer.data, status=status.HTTP_201_CREATED, headers=headers)
+    #     else:
+    #         print('Data is not valid')
+    #         print(serializer.errors)
+    #         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+   
 
+class FollowersView(generics.ListAPIView):
+    authentication_classes = (authentication.TokenAuthentication,)
+
+    def post(self,request):
+        user = request.user
+        data = request.data
+        user_to_follow = get_object_or_404(User,pk = data['user_pk'])
+        user.follow(user_to_follow)
+        return Response({'status':'following'})
+    
+    def get(self,request):
+        user = request.user
+        followers = UserSerializer(user.followers.all(),many=True)
+        return Response(followers.data)
+
+class FollowingListView(generics.ListAPIView):
+    authentication_classes = (authentication.TokenAuthentication,)
+
+    def get(self,request):
+        user = request.user
+        followers = UserSerializer(user.following.all(),many=True)
+        return Response(followers.data)
+    
 
 class RetrieveUpdateDestroyUserView(generics.RetrieveUpdateDestroyAPIView):
     '''
@@ -61,6 +99,7 @@ class CreateTokenView(ObtainAuthToken):
     renderer_classes = api_settings.DEFAULT_RENDERER_CLASSES 
 
     
+
 
 
 
@@ -148,3 +187,19 @@ class ListUserView(generics.ListAPIView):
         return queryset 
     
 
+class ListFollowersView(generics.ListAPIView):
+    serializer_class = UserSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return user.followers.all()
+    
+class ListFollowingView(generics.ListAPIView):
+    serializer_class = UserSerializer
+
+    def get_queryset(self):
+        user = self.request.user
+        return user.following.all()
+    
+# 
+# class CreateFollowingFollower(generics.CreateAPIView):

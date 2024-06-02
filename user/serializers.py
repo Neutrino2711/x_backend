@@ -18,6 +18,9 @@ class UserSerializer(serializers.ModelSerializer):
     Serializer for the user object
     '''
 
+    followers = serializers.PrimaryKeyRelatedField(many=True, read_only=True)
+
+    
     class Meta:
         model = User 
         fields = (
@@ -30,19 +33,21 @@ class UserSerializer(serializers.ModelSerializer):
             "bio",
             "joined",
             "followers",
-            "following",
             "profile_pic",
             
         )
 
         extra_kwargs = {"password":{"write_only":True,"min_length":5}}
 
-        def create(self,validated_data):
-            '''
-            Create new user with encrypted password and return it
-            '''
-            return get_user_model().objects.create_user(**validated_data)
-        
+
+    def create(self,validated_data):
+        '''
+        Create new user with encrypted password and return it
+        '''
+        print('Creating user in UserSerializer')
+        user_instance =  get_user_model().objects.create_user(**validated_data)
+        print(user_instance)
+        return user_instance
 class AuthTokenSerializer(serializers.Serializer):
 
 
@@ -61,11 +66,14 @@ class AuthTokenSerializer(serializers.Serializer):
         Validate and authenticate the user
         '''
         email =attrs.get("email")
+        print(email)
         password = attrs.get("password")
+        print(password)
 
         user = authenticate(
             request= self.context.get("request"),username = email,password = password
         )
+        print(user)
         if not user :
             msg = _("Unable to authenticate with provided credentials")
             raise serializers.ValidationError(msg,code = "authentication")
@@ -118,6 +126,7 @@ class PasswordResetSerializer(serializers.Serializer):
         response.raise_for_status()
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
+
     password = serializers.CharField(max_length = 128,write_only = True)
     confirm_password = serializers.CharField(max_length = 128,write_only = True)
 
@@ -125,3 +134,6 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
         if data["password"] != data["confirm_password"]:
             raise serializers.ValidationError("Passwords do not match. ")
         return data 
+    
+
+

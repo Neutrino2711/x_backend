@@ -19,6 +19,7 @@ from django.conf import settings
 
 class UserManager(BaseUserManager):
     def create_user(self,email,password=None,**extra_fields):
+        print('Creating user in UserManager')
         '''
         Creates and saves a new user
         '''
@@ -43,6 +44,9 @@ class UserManager(BaseUserManager):
         user.save(using = self._db)
         return user
     
+
+
+
 class User(AbstractBaseUser,PermissionsMixin):
     '''
     Custom user model that supports using email instead of username
@@ -60,27 +64,33 @@ class User(AbstractBaseUser,PermissionsMixin):
     city = models.CharField(max_length = 255,null = True)
     dob = models.DateField(null = True)
     bio = models.CharField(max_length = 500,null=True)
-    # current timestamp default
+    # current timestamp defaults
     joined = models.DateField(auto_now =True)
-    followers = models.IntegerField(default = 0)
-    following = models.IntegerField(default = 0)
     profile_pic = models.ImageField(
         null= True,
         blank = True
     )
     # we can access methods of class UserManager() 
-    objects = UserManager()
+    
 
 
     is_active = models.BooleanField(default = True)
     is_staff = models.BooleanField(default = False)
 
-    USERNAME_FIELD = "email"
-
-    # def save(self,*args,**kwargs):
-    #     old_profile_pic = None
-
-    #     if self.pk:
-
+   
 
     
+
+    followers = models.ManyToManyField('self', related_name='following', symmetrical=False)
+     
+    objects = UserManager()
+    
+    USERNAME_FIELD = "email"
+
+  
+
+    def follow(self, user):
+        self.following.add(user)
+
+    def unfollow(self, user):
+        self.following.remove(user)
