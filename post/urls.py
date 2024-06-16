@@ -9,5 +9,6 @@ urlpatterns = [
     path("<int:pk>/bookmark/",views.BookmarkView.as_view(),name = "bookmark"),
     path("<int:pk>/vote/",views.PostVoteView.as_view(),name="vote"),
     path("trending/",views.TrendingHastagsView.as_view(),name = "trending"),
+    path("<int:pk>/comments",views.RepliesListView.as_view(),name='post-comments'),
     
 ]

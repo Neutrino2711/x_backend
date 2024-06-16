@@ -187,19 +187,6 @@ class ListUserView(generics.ListAPIView):
         return queryset 
     
 
-class ListFollowersView(generics.ListAPIView):
-    serializer_class = UserSerializer
 
-    def get_queryset(self):
-        user = self.request.user
-        return user.followers.all()
-    
-class ListFollowingView(generics.ListAPIView):
-    serializer_class = UserSerializer
-
-    def get_queryset(self):
-        user = self.request.user
-        return user.following.all()
-    
 # 
 # class CreateFollowingFollower(generics.CreateAPIView):

@@ -123,3 +123,20 @@ class TrendingHastagsView(generics.ListAPIView):
 
     def get_queryset(self):
         return Hastag.objects.annotate(posts_count=Count('posts')).order_by('-posts_count').filter()
+    
+
+
+
+    
+class RepliesListView(generics.ListAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    authentication_classes = [authentication.TokenAuthentication]
+    serializer_class = PostListSerializer
+
+    def get_queryset(self):
+        parent_id = self.kwargs['pk']  # Get the parent post ID from the URL
+        return Post.objects.filter(parent_id=parent_id)  # Filter posts by parent
+
+    
+        
+

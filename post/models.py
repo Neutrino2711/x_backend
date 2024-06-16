@@ -75,6 +75,9 @@ class Post(models.Model):
         downvotes = self.votes.filter(vote = PostVote.DOWNVOTE).count()
         return upvotes-downvotes 
     
+    def comment(self,post):
+        self.replies.add(post)
+
     def save(self,*args,**kwargs ):
         old_image = None 
         if self.pk:

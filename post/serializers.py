@@ -26,7 +26,7 @@ class PostCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Post 
-        fields = ("content","image")
+        fields = ("content","image","parent")
         validators = []
 
 
@@ -106,10 +106,14 @@ class HastagsListSerializer(serializers.ModelSerializer):
 
         
 
+
+
         # hastags  = serializers.SerializerMethodField()
 
         # def get_hashtags(self,object):
         #     return object.hastags
+
+# class CommentListSerializer(serializers.ModelSerializer):
 
 
 # class CommentListSerializer(serializers.ModelSerializer):
