@@ -122,7 +122,9 @@ class TrendingHastagsView(generics.ListAPIView):
     serializer_class = HastagsListSerializer
 
     def get_queryset(self):
-        return Hastag.objects.annotate(posts_count=Count('posts')).order_by('-posts_count').filter()
+        queryset =  Hastag.objects.annotate(count=Count('posts')).order_by('-count').filter()
+        print(queryset.query)
+        return queryset
     
 
 class FollowingPostListView(generics.ListAPIView):

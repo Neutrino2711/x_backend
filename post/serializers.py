@@ -102,9 +102,14 @@ class PostDetailSerializer(serializers.ModelSerializer):
         return None 
 
 class HastagsListSerializer(serializers.ModelSerializer):
+    count = serializers.SerializerMethodField()
+    
     class Meta:
         model = Hastag
-        fields = "__all__"
+        fields = ['id','name','count']
+
+    def get_count(self,obj):
+        return obj.count
 
         
 

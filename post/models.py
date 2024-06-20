@@ -114,18 +114,16 @@ class Post(models.Model):
         self.clean()
         super().save(*args,**kwargs)
         hastags = re.findall(r"#(\w+)",self.content)
-        for hastag in hastags:
-           try:
-               tag = Hastag.objects.get(name = hastag)
-               self.hastags.add(tag)
-           except Hastag.DoesNotExist:
-               print("Hashtag Does Not Exist")    
-               
-
-               tag =  Hastag(name = hastag)
-           
-               tag.save()
-               self.hastags.add(tag)
+        print(hastags)
+        for hashtag in hastags:
+            tag, created = Hastag.objects.get_or_create(name=hashtag)
+            tag.save()
+            # print(self.hastags)
+            self.hastags.add(tag)  # Add the hashtag to the post's hashtags field
+            # tag.posts.add(self)  # Add the post to the hashtag's posts field
+        
+        # super().save(*args,**kwargs)
+        # print(f"Post saved with hashtags: {self.hastags.all()}")
         # if self.content is None and self.image is None:
         #     return 
         # else:    
