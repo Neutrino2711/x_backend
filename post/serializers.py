@@ -60,6 +60,8 @@ class PostListSerializer(serializers.ModelSerializer):
             return vote.vote 
         return None 
     
+   
+    
 
 class PostDetailSerializer(serializers.ModelSerializer):
     '''

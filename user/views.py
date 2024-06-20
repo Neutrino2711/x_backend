@@ -53,12 +53,7 @@ class CreateUserView(generics.CreateAPIView):
 class FollowersView(generics.ListAPIView):
     authentication_classes = (authentication.TokenAuthentication,)
 
-    def post(self,request):
-        user = request.user
-        data = request.data
-        user_to_follow = get_object_or_404(User,pk = data['user_pk'])
-        user.follow(user_to_follow)
-        return Response({'status':'following'})
+    
     
     def get(self,request):
         user = request.user
@@ -67,6 +62,13 @@ class FollowersView(generics.ListAPIView):
 
 class FollowingListView(generics.ListAPIView):
     authentication_classes = (authentication.TokenAuthentication,)
+
+    def post(self,request):
+        user = request.user
+        data = request.data
+        user_to_follow = get_object_or_404(User,pk = data['user_pk'])
+        user.follow(user_to_follow)
+        return Response({'status':'following'})
 
     def get(self,request):
         user = request.user

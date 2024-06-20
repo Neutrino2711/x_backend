@@ -125,6 +125,12 @@ class TrendingHastagsView(generics.ListAPIView):
         return Hastag.objects.annotate(posts_count=Count('posts')).order_by('-posts_count').filter()
     
 
+class FollowingPostListView(generics.ListAPIView):
+    serializer_class = PostListSerializer
+
+    def get_queryset(self):
+        following = self.request.user.following.all()
+        return Post.objects.filter(author__in=following).order_by('created_at')
 
 
     
